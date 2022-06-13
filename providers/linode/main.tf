@@ -10,14 +10,31 @@ terraform {
 provider "linode" {
 }
 
-resource "linode_instance" "minimal-vm" {
+variable "ssh_pub_key" {
+ type = string 
+}
+
+resource "linode_instance" "master-node" {
   region          = "us-east"
   type            = "g6-nanode-1"
   image           = "linode/ubuntu20.04"
-  tags            = ["tmp", "testing"]
-  authorized_keys = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDLctZTXVVj+Ir6vqRA0Ozh9u6sbAQwka/vTeti+VLxoWpo1GBJFcuZQaa4IJMvlL0Nqt0AYLOuSjHvIZmowqRpLkBuAktnBlB7ie+uMFOIZ+YRUEQDf58P+CXayenXYXHZXRSAjN1ofMIkemqkA05W334JL78gNnQQimYyBZZj1CQL9YSrdhVmcccX/+qD/nbtsJqQLKgmjEuQZnibrubZEgIlrqwAHEftUJEK9CjOp20A2MOaPavgPIFGsLw9M+OhFN9sRD9cndQvF9qGcvG1Xe86aX3phE9jHRoL7qxAF2BFyYT5e8D3xhr5HxJCbQA5GcWm7UW3wHMTR1gVpQ2aohmMgrfqXl0AFXHB6LwSuTn6T0ijZYCMQropeLnxbQjVtj1VtiD0loPsk77JS7ijwCd1OjSzwRACtlkjrx/hedSPmMgYAl4yofOuL2GPGf9VBqXmNJcBThrLoAKwnWew6SBLcZ7Za1PaPEbW2UzzHQQFRpPMGx+D4BzsQNMHaq8= scottw@scotts-air.lan"]
+  tags            = ["tmp", "k8s-tests", "master"]
+  authorized_keys = [ var.ssh_pub_key ]
 }
 
-output "vm-ip-address" {
-  value = linode_instance.minimal-vm.ip_address
+resource "linode_instance" "worker-node" {
+  count = 2
+  region          = "us-east"
+  type            = "g6-nanode-1"
+  image           = "linode/ubuntu20.04"
+  tags            = ["tmp", "k8s-tests", "worker"]
+  authorized_keys = [ var.ssh_pub_key ]
+}
+
+output "master-ips" {
+  value = linode_instance.master-node.ip_address
+}
+
+output "worker-ips" {
+  value = linode_instance.worker-node[*].ip_address
 }
