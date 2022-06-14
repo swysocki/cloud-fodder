@@ -20,6 +20,7 @@ resource "linode_instance" "master-node" {
   image           = "linode/ubuntu20.04"
   tags            = ["tmp", "k8s-tests", "master"]
   authorized_keys = [ var.ssh_pub_key ]
+  stackscript_id  = linode_stackscript.microk8s-install.id
 }
 
 resource "linode_instance" "worker-node" {
